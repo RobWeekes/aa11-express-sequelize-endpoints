@@ -2,16 +2,24 @@
 const express = require('express');
 const router = express.Router();
 
+// Import environment variables in order to connect to database - DO NOT MODIFY
+// require('dotenv').config();  // done in app.js file
+
 /**
  * BASIC PHASE 1, Step A - Import model
  */
-// Your code here 
+// Your code here
+const { Tree } = require('../db/models');
 
 /**
  * INTERMEDIATE BONUS PHASE 1 (OPTIONAL), Step A:
  *   Import Op to perform comparison operations in WHERE clauses
  **/
-// Your code here 
+// Your code here
+const { Op } = require("sequelize");
+
+// Express using json
+// router.use(express.json());   // done in app.js file
 
 /**
  * BASIC PHASE 1, Step B - List of all trees in the database
@@ -26,8 +34,11 @@ const router = express.Router();
 router.get('/', async (req, res, next) => {
     let trees = [];
 
-    // Your code here 
-
+    // Your code here
+    trees = await Tree.findAll({
+        attributes: ['heightFt', 'tree', 'id'],
+        order: [['heightFt','DESC']]
+    })
     res.json(trees);
 });
 
@@ -44,7 +55,8 @@ router.get('/:id', async (req, res, next) => {
     let tree;
 
     try {
-        // Your code here 
+        // Your code here
+        tree = await Tree.findByPk(req.params.id)
 
         if (tree) {
             res.json(tree);
@@ -166,7 +178,7 @@ router.delete('/:id', async (req, res, next) => {
  */
 router.put('/:id', async (req, res, next) => {
     try {
-        // Your code here 
+        // Your code here
     } catch(err) {
         next({
             status: "error",
