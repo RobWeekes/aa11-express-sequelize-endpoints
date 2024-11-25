@@ -37,7 +37,7 @@ router.get('/', async (req, res, next) => {
     // Your code here
     trees = await Tree.findAll({
         attributes: ['heightFt', 'tree', 'id'],
-        order: [['heightFt','DESC']]
+        order: [['heightFt', 'DESC']]
     })
     res.json(trees);
 });
@@ -67,7 +67,7 @@ router.get('/:id', async (req, res, next) => {
                 details: 'Tree not found'
             });
         }
-    } catch(err) {
+    } catch (err) {
         next({
             status: "error",
             message: `Could not find tree ${req.params.id}`,
@@ -107,7 +107,7 @@ router.post('/', async (req, res, next) => {
             message: "Successfully created new tree",
             data: newTree
         });
-    } catch(err) {
+    } catch (err) {
         next({
             status: "error",
             message: 'Could not create new tree',
@@ -145,7 +145,7 @@ router.delete('/:id', async (req, res, next) => {
             status: "success",
             message: `Successfully removed tree ${req.params.id}`,
         });
-    } catch(err) {
+    } catch (err) {
         next({
             status: "not-found",
             message: `Could not remove tree ${req.params.id}`,
@@ -192,7 +192,46 @@ router.delete('/:id', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
     try {
         // Your code here
-    } catch(err) {
+        // Add code to get the following 5 properties out of the request body:
+        const { id, name, location, height, size } = req.body;
+
+        // Handle ids that don't match. This route receives the id in two places
+        // Make sure they have the same value. if the id's don't match, use Express to respond with the following object
+        // if (id != req.params.id) return next({  // this works w/o strict equality but best practice is use strict !==
+        if (String(id) !== String(req.params.id)) return next({  // coerce numbers to strings before evaluating
+            status: 'error',
+            message: 'Could not update tree',
+            details: `${req.params.id} does not match ${id}`
+        })
+
+        // Find the tree
+        let updateTree = await Tree.findByPk(id); // pulled id out of req.body, dont need to pull req.params.id
+
+        // Handle tree not found
+        if (!updateTree) return next({
+            status: "not-found",
+            message: `Could not update tree ${req.params.id}`,
+            details: "Tree not found"
+        })
+
+        // Update tree properties if they exist in request
+        // update any / all non-id properties provided in the request body
+        // save those changes in the database
+        // if (id) updateTree.id = id,
+        if (name) updateTree.tree = name;
+        if (location) updateTree.location = location;
+        if (height) updateTree.heightFt = height;
+        if (size) updateTree.groundCircumferenceFt = size;
+
+        await updateTree.save();  // save changes to the db
+
+        res.json({
+            status: 'success',
+            message: 'Successfully updated tree',
+            data: updateTree
+        })
+
+    } catch (err) {
         next({
             status: "error",
             message: 'Could not update new tree',
